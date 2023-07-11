@@ -1,9 +1,7 @@
-from typing import AsyncGenerator
-
-from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
-from sqlalchemy.orm import DeclarativeBase, sessionmaker
-from sqlalchemy.pool import NullPool
-from sqlalchemy import MetaData
+from sqlalchemy.ext.asyncio import create_async_engine
+from sqlalchemy.orm import DeclarativeBase
+from sqlalchemy.ext.asyncio import async_sessionmaker
+from sqlalchemy import MetaData, NullPool
 
 from .config import settings
 from .constants import DB_NAMING_CONVENTION
@@ -11,13 +9,16 @@ from .constants import DB_NAMING_CONVENTION
 
 class Base(DeclarativeBase):
     metadata = MetaData(naming_convention=DB_NAMING_CONVENTION)
+    pass
 
 
-engine = create_async_engine(settings.Database_URL, poolclass=NullPool)
-async_session_maker = sessionmaker(
-    engine, class_=AsyncSession, expire_on_commit=False)
+if settings.MODE == "TEST":
+    DATABASE_URL = settings.TEST_DATABASE_URL
+    DATABASE_PARAMS = {"poolclass": NullPool}
+else:
+    DATABASE_URL = settings.DATABASE_URL
+    DATABASE_PARAMS = {}
 
+engine = create_async_engine(DATABASE_URL, **DATABASE_PARAMS)
 
-async def get_async_session() -> AsyncGenerator[AsyncSession, None]:
-    async with async_session_maker() as session:
-        yield session
+async_session_maker = async_sessionmaker(engine, expire_on_commit=False)
