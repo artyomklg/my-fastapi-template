@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
 
+from .users import auth_router, user_router
 from .config import settings
 
 app = FastAPI()
@@ -14,6 +15,10 @@ app.add_middleware(
     allow_methods=settings.CORS_METHODS,
     allow_headers=settings.CORS_HEADERS,
 )
+
+app.include_router(auth_router)
+app.include_router(user_router)
+
 
 @app.get("/", response_class=HTMLResponse)
 def home():
