@@ -9,8 +9,9 @@ from alembic import context
 
 sys.path.insert(0, dirname(dirname(dirname(abspath(__file__)))))
 
-from src.config import settings
+from src.users.models import UserModel, RefreshSessionModel
 from src.database import Base
+from src.config import settings
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
