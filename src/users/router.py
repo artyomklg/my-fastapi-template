@@ -3,12 +3,11 @@ import uuid
 
 from fastapi import APIRouter, Depends, Response, Request, status
 from fastapi.security import OAuth2PasswordRequestForm
-from sqlalchemy.ext.asyncio import AsyncSession
 
+from .models import UserModel
 from .schemas import UserCreate, Token, User, UserUpdate
 from .service import AuthService, UserService
 from .dependencies import get_current_user, get_current_superuser, get_current_active_user
-from ..database import get_async_session
 from ..exceptions import InvalidCredentialsException
 from ..config import settings
 
@@ -52,7 +51,7 @@ async def login(
 async def logout(
     request: Request,
     response: Response,
-    user: User = Depends(get_current_active_user),
+    user: UserModel = Depends(get_current_active_user),
 ):
     response.delete_cookie('access_token')
     response.delete_cookie('refresh_token')
@@ -88,7 +87,7 @@ async def refresh_token(
 @auth_router.post("/abort")
 async def abort_all_sessions(
     response: Response,
-    user: User = Depends(get_current_user)
+    user: UserModel = Depends(get_current_user)
 ):
     response.delete_cookie('access_token')
     response.delete_cookie('refresh_token')
@@ -101,14 +100,14 @@ async def abort_all_sessions(
 async def get_users_list(
     offset: Optional[int] = 0,
     limit: Optional[int] = 100,
-    current_user: User = Depends(get_current_superuser)
+    current_user: UserModel = Depends(get_current_superuser)
 ) -> List[User]:
     return await UserService.get_users_list(offset=offset, limit=limit)
 
 
 @user_router.get("/me")
 async def get_current_user(
-    current_user: User = Depends(get_current_active_user)
+    current_user: UserModel = Depends(get_current_active_user)
 ) -> User:
     return await UserService.get_user(current_user.id)
 
@@ -116,7 +115,7 @@ async def get_current_user(
 @user_router.put("/me")
 async def update_current_user(
     user: UserUpdate,
-    current_user: User = Depends(get_current_user)
+    current_user: UserModel = Depends(get_current_user)
 ) -> User:
     return await UserService.update_user(current_user.id, user)
 
@@ -125,7 +124,7 @@ async def update_current_user(
 async def delete_current_user(
     request: Request,
     response: Response,
-    current_user: User = Depends(get_current_user)
+    current_user: UserModel = Depends(get_current_user)
 ):
     response.delete_cookie('access_token')
     response.delete_cookie('refresh_token')
@@ -138,7 +137,7 @@ async def delete_current_user(
 @user_router.get("/{user_id}")
 async def get_user(
     user_id: str,
-    current_user: User = Depends(get_current_superuser)
+    current_user: UserModel = Depends(get_current_superuser)
 ) -> User:
     return await UserService.get_user(user_id)
 
@@ -147,7 +146,7 @@ async def get_user(
 async def update_user(
     user_id: str,
     user: User,
-    current_user: User = Depends(get_current_superuser)
+    current_user: UserModel = Depends(get_current_superuser)
 ) -> User:
     return await UserService.update_user_from_superuser(user_id, user)
 
@@ -155,7 +154,7 @@ async def update_user(
 @user_router.delete("/{user_id}")
 async def delete_user(
     user_id: str,
-    current_user: User = Depends(get_current_superuser)
+    current_user: UserModel = Depends(get_current_superuser)
 ):
     await UserService.delete_user_from_superuser(user_id)
     return {"message": "User was deleted"}

@@ -13,6 +13,8 @@ sqlalchemy = "^2.0.18"
 asyncpg = "^0.27.0"
 alembic = "^1.11.1"
 gunicorn = "^20.1.0"
+python-jose = "^3.3.0"
+passlib = {extras = ["bcrypt"], version = "^1.7.4"}
 
 
 [tool.poetry.group.dev.dependencies]
